@@ -7,7 +7,7 @@ Currently just a script that takes the CSV export of iMood Journal and spits out
 
 Deps - system
 ```
-sudo apt-get install gnuplot
+sudo apt-get install gnuplot imagemagic
 ```
 
 Deps - Perl
