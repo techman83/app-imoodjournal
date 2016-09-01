@@ -40,7 +40,7 @@ my $chart = Chart::Gnuplot->new(
   bg        => "white",
   timeaxis  => "x",            # declare that x-axis uses time format
   imagesize => '3, 1.7',
-  yrange    => [0, 10],
+  yrange    => [-0.5, 10.5],
   grid      => "on",
   grid      => {
     color     => "black",
@@ -69,17 +69,6 @@ my $bezier = Chart::Gnuplot::DataSet->new(
   timefmt   => '%s',      # input time format
 );
 
-my $csplines = Chart::Gnuplot::DataSet->new(
-  xdata     => \@timestamps,
-  ydata     => \@levels,
-  style     => 'lines',
-  linetype  => 'solid',
-  color     => 'green',
-  smooth    => 'csplines',
-  width     => '2',
-  timefmt   => '%s',      # input time format
-);
-
 my $lineFit = Statistics::LineFit->new();
 $lineFit->setData (\@timestamps, \@levels) or die "Invalid data";
 my @predictedYs = $lineFit->predictedYs();
@@ -94,4 +83,4 @@ my $fit = Chart::Gnuplot::DataSet->new(
 );
 
 # Plot the graph
-$chart->plot2d($points, $bezier, $csplines, $fit);
+$chart->plot2d($points, $bezier, $fit);
