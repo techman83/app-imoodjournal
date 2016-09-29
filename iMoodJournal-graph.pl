@@ -32,6 +32,16 @@ while ( my $entry = $journal->fetch ) {
   push( @levels, $entry->{Level} );
 }
 
+# Replace last value with an average of the previous n values
+# to smooth out the end of the graph.
+my $n = 3;
+my @nvalues = @levels[-$n..-1];
+my $sum;
+map { $sum += $_ } @nvalues;
+my $average = $sum / $n;
+$average = sprintf "%.2f", $average;
+$levels[-1] = $average;
+
 # Create the chart object
 my $chart = Chart::Gnuplot->new(
   output    => 'mood.png',
