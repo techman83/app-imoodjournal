@@ -9,6 +9,13 @@ use Chart::Gnuplot;
 use Statistics::LineFit;
 use Data::Dumper;
 
+# Include data from current - # days
+my $minusseconds;
+
+if ($ARGV[1]) {
+  $minusseconds = time - (86400 * $ARGV[1]);
+}
+
 # iMoodJournal.csv starts with a BOM marker.
 my $filehandle;
 open_bom($filehandle, $ARGV[0], ':utf8'),
@@ -24,17 +31,22 @@ my $journal = Parse::CSV->new(
 );
 
 my @timestamps;
-my @levels;    
+my @levels;
 while ( my $entry = $journal->fetch ) {
   my $datetime = "$entry->{Date} $entry->{Hour}:$entry->{Minute}";
   my $timestamp = str2time($datetime);
+
+  if ($minusseconds && $timestamp < $minusseconds) {
+    next;
+  }
+
   push( @timestamps, $timestamp );
   push( @levels, $entry->{Level} );
 }
 
 # Replace last value with an average of the previous n values
 # to smooth out the end of the graph.
-my $n = 3;
+my $n = 10;
 my @nvalues = @levels[-$n..-1];
 my $sum;
 map { $sum += $_ } @nvalues;
