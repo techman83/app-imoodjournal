@@ -8,12 +8,26 @@ use Date::Parse;
 use Chart::Gnuplot;
 use Statistics::LineFit;
 use Data::Dumper;
+use Getopt::Std;
+use List::Util qw( sum );
+
+# Option handling
+my %opts = (
+    d => 0,     # Number of days to show
+    s => 10     # Last point is smoothed this number of points
+);
+
+getopt('d:s:',\%opts);
 
 # Include data from current - # days
 my $minusseconds;
 
-if ($ARGV[1]) {
-  $minusseconds = time - (86400 * $ARGV[1]);
+if ($opts{d}) {
+  $minusseconds = time - (86400 * $opts{d});
+}
+
+if (not @ARGV) {
+    die "Usage: $0 [-d days] [-s smoothing] iMoodJournal.csv\n";
 }
 
 # iMoodJournal.csv starts with a BOM marker.
@@ -44,15 +58,15 @@ while ( my $entry = $journal->fetch ) {
   push( @levels, $entry->{Level} );
 }
 
-# Replace last value with an average of the previous n values
-# to smooth out the end of the graph.
-my $n = 10;
-my @nvalues = @levels[-$n..-1];
-my $sum;
-map { $sum += $_ } @nvalues;
-my $average = $sum / $n;
-$average = sprintf "%.2f", $average;
-$levels[-1] = $average;
+{
+    # Replace first/last values with an average of the next/previous n values
+    # to smooth out the end of the graph.
+
+    my $n = $opts{s};
+
+    $levels[0]  = sprintf "%.2f", mean( @levels[0..$n]   );
+    $levels[-1] = sprintf "%.2f", mean( @levels[-$n..-1] );
+}
 
 # Create the chart object
 my $chart = Chart::Gnuplot->new(
@@ -106,3 +120,8 @@ my $fit = Chart::Gnuplot::DataSet->new(
 
 # Plot the graph
 $chart->plot2d($points, $bezier, $fit);
+
+# Arithmetic mean
+sub mean {
+    return sum(@_) / @_;
+}
