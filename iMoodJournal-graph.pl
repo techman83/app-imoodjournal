@@ -26,6 +26,10 @@ if ($opts{d}) {
   $minusseconds = time - (86400 * $opts{d});
 }
 
+if (not @ARGV) {
+    die "Usage: $0 [-d days] [-s smoothing] iMoodJournal.csv\n";
+}
+
 # iMoodJournal.csv starts with a BOM marker.
 my $filehandle;
 open_bom($filehandle, $ARGV[0], ':utf8'),
